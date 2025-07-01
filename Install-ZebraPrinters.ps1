@@ -29,7 +29,7 @@ try {
     Expand-Archive -Path "$BaseDir\zdesigner.inf.zip" -DestinationPath $LocalDriversPath -Force
     Write-Log "Extraction complete."
 
-    # --- 4. Perform Installation ---
+    # --- 4. Perform Driver Installation ---
     Write-Log "Starting driver installation..."
 
     $driverPaths = @(
@@ -63,15 +63,16 @@ try {
     foreach ($printerEntry in $printersToInstall.PSObject.Properties) {
         $printerName = $printerEntry.Name
         $printerIP = $printerEntry.Value
+        $portName = "IP_$($printerIP)"
 
         try {
-            if (-not (Get-PrinterPort -Name "IP_$printerIP" -ErrorAction SilentlyContinue)) {
-                Write-Log "Adding port IP_$printerIP..."
-                Add-PrinterPort -Name "IP_$printerIP" -PrinterHostAddress $printerIP -ErrorAction Stop
+            if (-not (Get-PrinterPort -Name $portName -ErrorAction SilentlyContinue)) {
+                Write-Log "Adding port $portName..."
+                Add-PrinterPort -Name $portName -PrinterHostAddress $printerIP -ErrorAction Stop
             }
             if (-not (Get-Printer -Name $printerName -ErrorAction SilentlyContinue)) {
                  Write-Log "Adding printer $printerName..."
-                 Add-Printer -Name $printerName -DriverName $zebraDriverName -PortName "IP_$printerIP" -ErrorAction Stop
+                 Add-Printer -Name $printerName -DriverName $zebraDriverName -PortName $portName -ErrorAction Stop
             }
         }
         catch {
@@ -86,4 +87,3 @@ catch {
 finally {
     Write-Log "--- Worker script finished. ---"
 }
-
